@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+        <!-- Babylon.js -->
+        <script src="http://www.babylonjs.com/hand.minified-1.2.js"></script>
+        <script src="http://www.babylonjs.com/cannon.js"></script>
+        <script src="http://www.babylonjs.com/oimo.js"></script>
+        <script src="http://cdn.babylonjs.com/2-3/babylon.js"></script>
+        <script src="babylon.objFileLoader.js"></script>      
+        <script src="demo/Star.js"></script>
+        <script src="js/Planet.js"></script>   
+        <script src="js/Space.js"></script>   
+      
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+          
+          #stats{
+            position:absolute;
+            right:25px;
+            top:25px;
+            color:#ddd;
+          }
+          
+        </style>
+    </head>
+<body>
+    <div id="stats"></div>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+
+        var createScene = function () {
+          
+            // This creates a basic Babylon Scene object (non-mesh)
+            var scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0, 0, 0);    
+          
+             // This targets the camera to scene origin
+        	  var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -30), scene);
+            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.maxX=1000000;
+            camera.maxY=1000000;   
+            camera.maxZ=1000000;
+             
+            //хз что это
+            //camera.lowerRadiusLimit = 50;
+            //camera.upperRadiusLimit = 500;
+        	               
+        
+            // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+            var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 0, 0), scene);
+            light.intensity = 0.6;
+            light.specular = new BABYLON.Color3(0, 0, 0);
+            light.groundColor = new BABYLON.Color3(0.8, 0.4, 0.4);                                            
+        	  //====================================================================//
+                                            
+        	  //======================================================================//
+          
+        	  var url = "http://jerome.bousquie.fr/BJS/images/rock.jpg";
+          	  var mat = new BABYLON.StandardMaterial("mat1", scene);
+              var texture = new BABYLON.Texture(url, scene);
+              mat.diffuseTexture = texture;
+              mat.backFaceCulling = false;
+        	
+        	  var fact = 6600;   // density
+        	  var scaleX = 0.0;
+        	  var scaleY = 0.0;
+        	  var scaleZ = 0.0;
+        	  var grey = 0.0;
+        	
+        	  // custom vertex function
+        	  var myVertexFunction = function(particle, vertex, i) {
+        	      vertex.x *= (Math.random() + 1);
+        	      vertex.y *= (Math.random() + 1);
+        	      vertex.z *= (Math.random() + 1);
+        	  };
+        	
+        	 // custom position function
+        	 var myPositionFunction = function(particle, i, s) {
+        	      scaleX = Math.random() * 14 + 0.8;
+        	      scaleY = Math.random() + 0.8;
+        	      scaleZ = Math.random() * 14 + 0.8;
+        	      particle.scale.x = scaleX;
+        	      particle.scale.y = scaleY;
+        	      particle.scale.z = scaleZ;
+        	      particle.position.x = (Math.random() - 0.5) * fact;
+        	      particle.position.y = (Math.random() - 0.5) * fact;
+        	      particle.position.z = (Math.random() - 0.5) * fact;
+        	      particle.rotation.x = Math.random() * 3.5;
+        	      particle.rotation.y = Math.random() * 3.5;
+        	      particle.rotation.z = Math.random() * 3.5;
+        	      grey = 1.0 - Math.random() * 0.3;
+        	      particle.color = new BABYLON.Color4(grey, grey, grey, 1);
+        	  };
+          
+            engine.setHardwareScalingLevel(1.5);
+        	 
+        	 
+        	  // Particle system creation : Immutable
+        	
+        	  var SPS = new BABYLON.SolidParticleSystem('SPS', scene, {updatable: false});
+        	  var sphere = BABYLON.MeshBuilder.CreateSphere("s", {diameter: 6, segments: 8}, scene);
+        	  SPS.addShape(sphere, 100, {positionFunction: myPositionFunction, vertexFunction: myVertexFunction});
+        	  var mesh = SPS.buildMesh();
+            mesh.renderingGroupId = 1;
+        	  mesh.material = mat;
+        	  // dispose the model
+        	  sphere.dispose();	
+        	//======================================================================//	
+        
+          //var loader = new BABYLON.AssetsManager(scene);
+          //var batman = loader.addMeshTask("batman", "", "models/Wraith Raider Starship/", "Wraith Raider Starship.obj");
+          
+          
+          //======================================================================//
+            // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
+            var sphere = new BABYLON.Mesh("sphere", scene),
+                ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
+          
+        	  ground.position.y = -2;
+        
+            // Our built-in 'sphere' shape. Params: name, subdivs, size, scene            
+            
+        	  //scene.enablePhysics(new BABYLON.Vector3(0, 0, 0), new BABYLON.OimoJSPlugin());	          
+            var spaceSheep;// = BABYLON.Mesh.CreateBox("box1", 1, scene) 	    
+            sphere.renderingGroupId = 1;
+          
+            BABYLON.SceneLoader.ImportMesh("Cube", "models/", "Spaceship1.babylon", scene, function (newMeshes, particleSystems) {
+              spaceSheep=newMeshes[0];
+              spaceSheep.position.y = -1;	              
+              spaceSheep.rotation.y = 3.14;	              
+              spaceSheep.parent = sphere;
+              spaceSheep.renderingGroupId=1;
+              //console.log("newMeshes", newMeshes[0], scene);              
+            });          
+            
+        	//sphere.setPhysicsState(BABYLON.PhysicsEngine.BoxImpostor, { mass: 1 });
+        	//spaceSheep.rotate(BABYLON.Axis.Z, -0.4, BABYLON.Space.LOCAL);
+          //stars.parent=sphere;                  		
+                	
+        	var x,
+        		y, acceleration = 0.05,
+        		speed = 0.01,
+        		braking = 0.0003,		
+        		//??????????
+        		buttons=0;
+        	
+            document.addEventListener("mousemove", function (e) {
+        		buttons = e.buttons;
+        		x = (e.offsetX / engine._renderingCanvas.offsetWidth) - 0.5;
+        		y = (e.offsetY / engine._renderingCanvas.offsetHeight) - 0.5;					
+        	})				
+        	
+        	document.addEventListener("keydown", function (e) {        		
+            //console.log(e.keyCode);
+            if(e.keyCode===9){
+              speed += speed<20?acceleration*4:0;    
+              console.log(e.keyCode, speed);
+            } else {
+              speed += speed<2?acceleration:0;
+            }
+            e.preventDefault();
+
+        	})				
+        	
+        	
+          camera.parent = sphere;
+        	
+        	var rotateSpeed = 0.05
+        	//sphere.rotate(BABYLON.Axis.Z, sphere.rotation.z + 0.7, BABYLON.Space.LOCAL);
+        	
+          var rx=0;ry=0;
+        	scene.registerBeforeRender(function () {				
+        		if (buttons) {
+                
+              //rx+=rx>x?x/5;
+              //ry+=y/5;
+              
+              rx+=(rx<x && x>0)?x/8:0;
+              rx+=(rx>x && x<0)?x/8:0;
+              ry+=(ry<y && y>0)?y/8:0;
+              ry+=(ry>y && y<0)?y/8:0;        
+              
+              //console.log(x,rx);                      			
+        		} else { 
+        			speed -= (speed - speed * braking > 0) ? speed * braking : 0;
+              rx+=(rx<0)?-rx/8:0;
+              rx+=(rx>0)?-rx/8:0;
+              ry+=(ry<0)?-ry/8:0;
+              ry+=(ry>0)?-ry/8:0;
+              
+        			//sphere.rotation.z += sphere.rotation.z > 0 ? -0.1 : 0;						
+        			//sphere.rotation.y -= sphere.rotation.y / 100;
+        			//if (sphere.rotation.z > 0) sphere.rotate(BABYLON.Axis.Z, 0.1, BABYLON.Space.LOCAL);
+        			//if(sphere.rotation.z<0) sphere.rotate(BABYLON.Axis.Z, -0.1, BABYLON.Space.LOCAL);
+        		}
+            
+            sphere.rotate(BABYLON.Axis.Y, sphere.rotation.x + rx * rotateSpeed, BABYLON.Space.LOCAL);
+        		sphere.rotate(BABYLON.Axis.X, sphere.rotation.y + ry * rotateSpeed, BABYLON.Space.LOCAL);
+            
+            if(spaceSheep){
+        		  spaceSheep.rotation.y = Math.atan(rx, ry) * 0.4+Math.PI;
+        		  spaceSheep.rotation.x = Math.atan(ry, rx) * -0.4;	               
+        		  //spaceSheep.rotation.z = -(Math.atan(rx, ry)) * 0.8;	              
+            }            
+            
+            //stars.rotate(BABYLON.Axis.X, 0.001, BABYLON.Space.LOCAL);        				
+            sphere.locallyTranslate(new BABYLON.Vector3(0, 0, speed));            
+            space.update(camera,sphere);                                    
+          }); 
+          
+          //var cam={};
+          //cam.position=sphere.position.add(camera.position);
+          
+          var space = new Space(scene, engine, camera,sphere);
+          new Planet(scene, engine,camera, space.sunLight,{
+            x:5000,
+            y:2000,
+            z:40000,
+            biome:"volcanic"
+          });
+          
+          
+          new Planet(scene, engine,camera, space.sunLight,{
+            x:-5000,
+            y:0,
+            z:15000,
+            biome:"earth"
+          });
+          
+          
+          new Planet(scene, engine,camera, space.sunLight,{
+            x:3000,
+            y:0,
+            z:3000,
+            biome:"islands"
+          });
+          
+          //scene.createOrUpdateSelectionOctree(); //внимание возникают проблемы со skyboxесли использовать
+          //=================================================================================================
+          var path=[];
+          for (var i = -100; i < 100; i++) {
+            path.push(new BABYLON.Vector3(Math.sin(i/30)*500000, 0, Math.cos(i/30)*500000-400000 ));
+          }
+          var tube=BABYLON.Mesh.CreateTube("tube", path, 50, 5, false, BABYLON.Mesh.NO_CAP, scene);            
+          tube.material = new BABYLON.StandardMaterial("texture1", scene);
+          tube.material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.5);
+          tube.renderGroupId=1;
+          tube.backFaceCulling=false;
+          //==================================================================================================
+          return scene;        
+        };
+        
+        
+        
+        var scene = createScene();
+        //scene.debugLayer.show(true);
+
+        engine.runRenderLoop(function () {
+            stats.innerHTML = engine.fps.toFixed()+" FPS";
+            scene.render();
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
