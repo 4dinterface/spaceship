@@ -1,0 +1,23 @@
+	Exporter version: 4.4.1, Blender version: 2.76 (sub 0)
+========= Conversion from Blender to Babylon.js =========
+	Scene settings used:
+		selected layers only:  false
+		flat shading entire scene:  false
+		inline textures:  false
+		texture directory:  C:\web\server\root\battlesheep\models\
+	Python World class constructor completed
+	processing begun of mesh:  Cube
+		WARNING: Mixing of Cycles & Blender Render in same mesh not supported.  No materials exported.
+		num positions      :  5208
+		num normals        :  5208
+		num uvs            :  0
+		num uvs2           :  0
+		num colors         :  0
+		num indices        :  30174
+		WARNING: # of 0 area faces found:  1236
+	processing begun of camera (FreeCamera):  Camera
+	processing begun of light (POINT):  Lamp
+========= Writing of scene file started =========
+========= Writing of scene file completed =========
+========= end of processing =========
+elapsed time:  0 min, 2.0729 secs
